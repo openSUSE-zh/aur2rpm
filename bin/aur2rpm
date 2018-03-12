@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.push(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+
+require 'optparse'
+require 'aur2rpm'
+
+options = {}
+
+parser = OptionParser.new do |opts|
+           opts.banner = "Installs AUR package from ArchLinux as openSUSE RPM"
+           opts.on("-n pkgname", "--name pkgname", "The package to install") do |v|
+             options['pkgname'] = v
+	   end
+	 end.parse!
+	 
+pkgbuild = AUR2RPM::PKGBUILD.new(options["pkgname"]).parse
+p pkgbuild
