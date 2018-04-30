@@ -14,5 +14,5 @@ parser = OptionParser.new do |opts|
 	   end
 	 end.parse!
 	 
-pkgbuild = AUR2RPM::PKGBUILD.new(options["pkgname"]).parse
+pkgbuild = AUR2RPM::Parser.new(options["pkgname"]).parse
 p pkgbuild
