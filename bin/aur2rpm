@@ -1,18 +1,39 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-$LOAD_PATH.push(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+$LOAD_PATH.push(File.expand_path("#{File.dirname(__FILE__)}/../lib"))
 
-require 'optparse'
 require 'aur2rpm'
+include ArchUserRepo
 
-options = {}
+options = []
+packages = []
 
-parser = OptionParser.new do |opts|
-           opts.banner = "Installs AUR package from ArchLinux as openSUSE RPM"
-           opts.on("-n pkgname", "--name pkgname", "The package to install") do |v|
-             options['pkgname'] = v
-	   end
-	 end.parse!
-	 
-pkgbuild = AUR2RPM::Parser.new(options["pkgname"]).parse
-p pkgbuild
+ARGV.each do |arg|
+  if arg.start_with?('-')
+    options.push(arg.gsub(/-/, ''))
+  elsif exist?(arg.strip)
+    packages.push(Package.new(arg.strip))
+  end
+end
+
+if ARGV.empty? || options.include?('help') || options.include?('h')
+  puts 'aur2rpm is a command line application to install packages from archlinux user repository'
+  puts 'to openSUSE. it has the following options:'
+  puts "\t-h, --help\tThis help."
+  puts "\t--no-build\tBy default, it will build rpm packages and install them, with this option"
+  puts "\t\tuser can just generate the co-responding specfile, without actually build the result"
+  puts "\t\tpackage."
+  puts "\t--no-verify\tBy default, it will first build the PKGBUILD file in an archlinux chroot"
+  puts "\t\tto verify if it builds. This option will skip this procedure."
+end
+
+packages.each do |package|
+  package.fetch
+  package.verify unless options.include?('no-verify')
+  package.convert
+  unless options.include?('no-build')
+    package.build
+    package.install
+  end
+end
